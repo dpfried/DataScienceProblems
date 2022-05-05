@@ -63,7 +63,8 @@ def execute(notebook_filename, actor, ferr):
     try:
         enb = client.execute()
     except Exception as e:
-        print(notebook_filename, file=ferr)
+        with open(ferr, 'a') as f:
+            print(notebook_filename, file=f)
         return
     nbformat.write(enb, notebook_filename)
     print(notebook_filename)
@@ -104,7 +105,7 @@ def evaluate_dsp(sample_file="samples.jsonl", ks=[1, 10, 100]):
     # create new notebooks with generated code filled in
     print("Saving to new notebooks with generated samples.")
     ps = read_filepaths()
-    out_file = "generated.txt"
+    out_file = "/tmp/generated.txt"
     with open(out_file, "w") as fout:
         for path in tqdm(ps, total=len(ps)):
             refersh_and_save(path, fout, completions, problems)
@@ -119,10 +120,9 @@ def evaluate_dsp(sample_file="samples.jsonl", ks=[1, 10, 100]):
         ps = f.readlines()
     
     pb = ProgressBar(len(ps))
-    with open("errors.txt", "w") as ferr:
-        tasks_pre_launch = [execute.remote(notebook_filename, pb.actor, ferr) for notebook_filename in ps]
-        pb.print_until_done()
-        tasks = ray.get(tasks_pre_launch)
+    tasks_pre_launch = [execute.remote(notebook_filename, pb.actor, "errors.txt") for notebook_filename in ps]
+    pb.print_until_done()
+    tasks = ray.get(tasks_pre_launch)
 
 
     # calculate pass@k.

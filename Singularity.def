@@ -1,0 +1,21 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+Stage: spython-base
+
+%files
+src /app
+%post
+# Copyright (C) Microsoft Corporation. All rights reserved.
+
+
+
+cd /app
+
+pip install -e .
+
+%runscript
+cd /app
+exec evaluate_dsp "$@"
+%startscript
+cd /app
+exec evaluate_dsp "$@"
